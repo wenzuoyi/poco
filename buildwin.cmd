@@ -27,17 +27,63 @@ rem TOOL:          devenv|vcexpress|wdexpress|msbuild
 rem
 rem VS_VERSION is required argument. Default is build all.
 
+rem PLATFORM [Win32|x64|WinCE|WEC2013]
+set PLATFORM=%5
+if "%PLATFORM%"=="" (set PLATFORM=Win32)
+if not "%PLATFORM%"=="Win32" (
+if not "%PLATFORM%"=="x64" (
+if not "%PLATFORM%"=="WinCE" (
+if not "%PLATFORM%"=="WEC2013" goto usage)))
+
+rem CONFIGURATION [release|debug|both]
+set CONFIGURATION=%4
+if "%CONFIGURATION%"=="" (set CONFIGURATION=both)
+if not "%CONFIGURATION%"=="release" (
+if not "%CONFIGURATION%"=="debug" (
+if not "%CONFIGURATION%"=="both" goto usage))
+
+rem LINKMODE [static_mt|static_md|shared|all]
+set LINK_MODE=%3
+if "%LINK_MODE%"=="" (set LINK_MODE=all)
+if not "%LINK_MODE%"=="static_mt" (
+if not "%LINK_MODE%"=="static_md" (
+if not "%LINK_MODE%"=="shared" (
+if not "%LINK_MODE%"=="all" goto usage)))
+
+set PLATFORMTARGET=x86
+if "%PLATFORM%"=="Win32" (
+  set PLATFORMTARGET=x86
+) else (
+  if "%PLATFORM%"=="x64" (
+    set PLATFORMTARGET=x64
+  )
+)
+
 rem Change OPENSSL_DIR to match your setup
-set OPENSSL_DIR=C:\OpenSSL
-set OPENSSL_INCLUDE=%OPENSSL_DIR%\include
-set OPENSSL_LIB=%OPENSSL_DIR%\lib;%OPENSSL_DIR%\lib\VC
+set OPENSSL_DIR=E:\proj\openssl\build
+set OPENSSL_INCLUDE=%OPENSSL_DIR%\include\
+set OPENSSL_LIB=%OPENSSL_DIR%
+set KEY_WORDS=win32
+if "%PLATFORM%"=="Win32" (
+  set KEY_WORDS=win32
+) else (
+  if "%PLATFORM%"=="x64" set KEY_WORDS=win64
+)
+
+
+set OPENSSL_LIB_SHARED=%OPENSSL_LIB%\%KEY_WORDS%\bin\%CONFIGURATION%\
+set OPENSSL_LIB_STATIC=%OPENSSL_LIB%\%KEY_WORDS%\lib\%CONFIGURATION%\
+set OPENSSL_LIB=%OPENSSL_LIB_SHARED%;%OPENSSL_LIB_STATIC%
+echo %OPENSSL_LIB%   
+pause
+  
 set INCLUDE=%INCLUDE%;%OPENSSL_INCLUDE%
 set LIB=%LIB%;%OPENSSL_LIB%
 
 rem Change MYSQL_DIR to match your setup
-set MYSQL_DIR=C:\PROGRA~1\MySQL\MYSQLS~1.5
-set MYSQL_INCLUDE=%MYSQL_DIR%\include
-set MYSQL_LIB=%MYSQL_DIR%\lib
+set MYSQL_DIR=E:\proj\mysql_connector\mysql_connector\%PLATFORMTARGET%
+set MYSQL_INCLUDE=%MYSQL_DIR%\include\
+set MYSQL_LIB=%MYSQL_DIR%\lib\
 set INCLUDE=%INCLUDE%;%MYSQL_INCLUDE%
 set LIB=%LIB%;%MYSQL_LIB%
 
@@ -52,13 +98,6 @@ if %VS_VERSION%==vs150 (
 ) else (
   set VS_VARSALL=..\..\VC\vcvarsall.bat
 )
-rem PLATFORM [Win32|x64|WinCE|WEC2013]
-set PLATFORM=%5
-if "%PLATFORM%"=="" (set PLATFORM=Win32)
-if not "%PLATFORM%"=="Win32" (
-if not "%PLATFORM%"=="x64" (
-if not "%PLATFORM%"=="WinCE" (
-if not "%PLATFORM%"=="WEC2013" goto usage)))
 
 if not defined VCINSTALLDIR (
   if %VS_VERSION%==vs90 (
@@ -162,21 +201,6 @@ if "%ACTION%"=="" (set ACTION=build)
 if not "%ACTION%"=="build" (
 if not "%ACTION%"=="rebuild" (
 if not "%ACTION%"=="clean" goto usage))
-
-rem LINKMODE [static_mt|static_md|shared|all]
-set LINK_MODE=%3
-if "%LINK_MODE%"=="" (set LINK_MODE=all)
-if not "%LINK_MODE%"=="static_mt" (
-if not "%LINK_MODE%"=="static_md" (
-if not "%LINK_MODE%"=="shared" (
-if not "%LINK_MODE%"=="all" goto usage)))
-
-rem CONFIGURATION [release|debug|both]
-set CONFIGURATION=%4
-if "%CONFIGURATION%"=="" (set CONFIGURATION=both)
-if not "%CONFIGURATION%"=="release" (
-if not "%CONFIGURATION%"=="debug" (
-if not "%CONFIGURATION%"=="both" goto usage))
 
 if "%PLATFORM%"=="Win32" (set PLATFORM_SUFFIX=) else (
 if "%PLATFORM%"=="x64" (set PLATFORM_SUFFIX=_x64) else (
