@@ -198,24 +198,21 @@ bool SocketReactor::hasEventHandler(const Socket& socket, const Poco::AbstractOb
 void SocketReactor::removeEventHandler(const Socket& socket, const Poco::AbstractObserver& observer)
 {
 	NotifierPtr pNotifier;
+	FastMutex::ScopedLock lock(_mutex);
+
+	EventHandlerMap::iterator it = _handlers.find(socket);
+	if (it != _handlers.end())
 	{
-		FastMutex::ScopedLock lock(_mutex);
-	
-		EventHandlerMap::iterator it = _handlers.find(socket);
-		if (it != _handlers.end())
+		pNotifier = it->second;
+		if (pNotifier->hasObserver(observer) && pNotifier->countObservers() == 1)
 		{
-			pNotifier = it->second;
-			if (pNotifier->hasObserver(observer) && pNotifier->countObservers() == 1)
-			{
-				_handlers.erase(it);
-			}
+			_handlers.erase(it);
 		}
 	}
 	if (pNotifier && pNotifier->hasObserver(observer))
 	{
 		pNotifier->removeObserver(this, observer);
 	}
-
 }
 
 
